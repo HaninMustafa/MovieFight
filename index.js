@@ -8,23 +8,29 @@ const fetchData = async (searchTerm) => {
       s: searchTerm,
     },
   });
-  console.log(response.data);
+  return response.data.Search;
 };
-
 const input = document.querySelector("input");
 
-let timeoutId;
+//easy to read onInput function
+// const onInput = debounce((event) => {
+//   fetchData(event.target.value);
+// });
+// input.addEventListener("input", onInput);
+//a different way of doing it
 
-const onInput = (event) => {
-  //the first time around this timerId is not defined so we will skip the code
-  if (timeoutId) {
-    clearTimeout(timeoutId);
+const onInput = async (event) => {
+  //
+  const movies = await fetchData(event.target.value);
+
+  for (let movie of movies) {
+    const div = document.createElement("div");
+    div.innerHTML = `
+    <img src="${movie.Poster}" />
+    <h1>${movie.Title}</h1>
+    `;
+    document.querySelector("#target").appendChild(div);
   }
-  //this to be defined it will need to wait the 1 second
-  //adjusting the the time waited to make the search faster
-  timeoutId = setTimeout(() => {
-    fetchData(event.target.value);
-  }, 1000);
 };
 
-input.addEventListener("input", onInput);
+input.addEventListener("input", debounce(onInput, 500));
