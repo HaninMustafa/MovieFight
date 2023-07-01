@@ -1,39 +1,82 @@
 const fetchData = async (searchTerm) => {
-  //axios gives us a very neat way to add prameters to the URLs, as objects
-  // s refers to search //s:"avengers",
-
   const response = await axios.get("http://www.omdbapi.com/", {
     params: {
-      apikey: "52b1d648",
+      apikey: "d9835cc5",
       s: searchTerm,
     },
   });
+
   if (response.data.Error) {
     return [];
   }
+
   return response.data.Search;
 };
-const input = document.querySelector("input");
 
-//easy to read onInput function
-// const onInput = debounce((event) => {
-//   fetchData(event.target.value);
-// });
-// input.addEventListener("input", onInput);
-//a different way of doing it
+const root = document.querySelector(".autocomplete");
+root.innerHTML = `
+    <label><b>Search For a Movie</b></label>
+    <input class="input" />
+    <div class="dropdown">
+      <div class="dropdown-menu">
+        <div class="dropdown-content results"></div>
+      </div>
+    </div>
+  `;
+
+const input = document.querySelector("input");
+const dropdown = document.querySelector(".dropdown");
+const resultsWrapper = document.querySelector(".results");
 
 const onInput = async (event) => {
-  //
   const movies = await fetchData(event.target.value);
 
+  //Handelling empty responses
+  if (!movies.length) {
+    dropdown.classList.remove("is-active");
+    return; // to prevent the function from running extra codes
+  }
+  resultsWrapper.innerHTML = "";
+  dropdown.classList.add("is-active");
   for (let movie of movies) {
-    const div = document.createElement("div");
-    div.innerHTML = `
-    <img src="${movie.Poster}" />
-    <h1>${movie.Title}</h1>
-    `;
-    document.querySelector("#target").appendChild(div);
+    const option = document.createElement("a");
+
+    //Handeling broken images
+    const imgSrc = movie.Poster === "N/A" ? "" : movie.Poster;
+
+    option.classList.add("dropdown-item");
+    option.innerHTML = `
+        <img src="${imgSrc}" />
+        ${movie.Title}
+      `;
+    //Handling Movie selection
+    option.addEventListener("click", () => {
+      dropdown.classList.remove("is-active");
+      input.value = movie.Title;
+      //making a follow up request
+      onMovieSelect(movie);
+    });
+    resultsWrapper.appendChild(option);
   }
 };
 
 input.addEventListener("input", debounce(onInput, 500));
+
+//automatically closing the dropdown
+document.addEventListener("click", (event) => {
+  //   console.log(event.target);
+  if (!root.contains(event.target)) {
+    dropdown.classList.remove("is-active");
+  }
+});
+
+//making a follow up request
+const onMovieSelect = async (movie) => {
+  const response = await axios.get("http://www.omdbapi.com/", {
+    params: {
+      apikey: "d9835cc5",
+      i: movie.imdbID,
+    },
+  });
+  console.log(response.data);
+};
