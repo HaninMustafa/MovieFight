@@ -1,4 +1,4 @@
-const createAutoConmplete = ({
+const createAutoComplete = ({
   root,
   renderOption,
   onOptionSelect,

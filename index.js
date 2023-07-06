@@ -1,6 +1,5 @@
 //to have multiple autocompleteS
-createAutoConmplete({
-  root: document.querySelector(".autocomplete"),
+const autoCompleteConfig = {
   renderOption(movie) {
     //Handeling broken images
     const imgSrc = movie.Poster === "N/A" ? "" : movie.Poster;
@@ -8,9 +7,6 @@ createAutoConmplete({
     <img src="${imgSrc}" />
     ${movie.Title} (${movie.Year})
   `;
-  },
-  onOptionSelect(movie) {
-    onMovieSelect(movie);
   },
   inputValue(movie) {
     return movie.Title;
@@ -28,6 +24,22 @@ createAutoConmplete({
     }
     return response.data.Search;
   },
+};
+createAutoComplete({
+  ...autoCompleteConfig,
+  root: document.querySelector("#left-autocomplete"),
+  onOptionSelect(movie) {
+    document.querySelector(".tutorial").classList.add(".is-hidden");
+    onMovieSelect(movie, document.querySelector("#left-summary"), "left");
+  },
+});
+createAutoComplete({
+  ...autoCompleteConfig,
+  root: document.querySelector("#right-autocomplete"),
+  onOptionSelect(movie) {
+    document.querySelector(".tutorial").classList.add(".is-hidden");
+    onMovieSelect(movie, document.querySelector("#right-summary"), "right");
+  },
 });
 // createAutoConmplete({
 //   root: document.querySelector(".autocomplete-two"),
@@ -36,15 +48,29 @@ createAutoConmplete({
 //   root: document.querySelector(".autocomplete-three"),
 // });
 
+let rightMovie;
+let leftMovie;
 //making a follow up request
-const onMovieSelect = async (movie) => {
+const onMovieSelect = async (movie, summeryElement, side) => {
   const response = await axios.get("http://www.omdbapi.com/", {
     params: {
       apikey: "d9835cc5",
       i: movie.imdbID,
     },
   });
-  document.querySelector("#summery").innerHTML = movieTemplate(response.data);
+  summeryElement.innerHTML = movieTemplate(response.data);
+  if (side === "left") {
+    leftMovie = response.data;
+  } else {
+    rightMovie = response.data;
+  }
+
+  if (leftMovie && rightMovie) {
+    runComparison();
+  }
+};
+const runComparison = () => {
+  console.log("Time for comparison!");
 };
 
 //Rendering an expanded summary - a function that knows how to render a movie
